@@ -1,4 +1,3 @@
-import os
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -6,18 +5,18 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    
+
     pkg_bme_ros2_navigation = FindPackageShare('bme_ros2_navigation')
     default_rviz_config_path = PathJoinSubstitution([pkg_bme_ros2_navigation, 'rviz', 'urdf.rviz'])
 
     # Show joint state publisher GUI for joints
     gui_arg = DeclareLaunchArgument(name='gui', default_value='true', choices=['true', 'false'],
                                     description='Flag to enable joint_state_publisher_gui')
-    
+
     # RViz config file path
     rviz_arg = DeclareLaunchArgument(name='rvizconfig', default_value=default_rviz_config_path,
                                     description='Absolute path to rviz config file')
-    
+
 
     # URDF model path within the bme_ros2_navigation package
     model_arg = DeclareLaunchArgument(
@@ -35,11 +34,11 @@ def generate_launch_description():
             'jsp_gui': LaunchConfiguration('gui')}.items()
     )
 
-    launchDescriptionObject = LaunchDescription()
+    launch_description_object = LaunchDescription()
 
-    launchDescriptionObject.add_action(gui_arg)
-    launchDescriptionObject.add_action(rviz_arg)
-    launchDescriptionObject.add_action(model_arg)
-    launchDescriptionObject.add_action(urdf)
+    launch_description_object.add_action(gui_arg)
+    launch_description_object.add_action(rviz_arg)
+    launch_description_object.add_action(model_arg)
+    launch_description_object.add_action(urdf)
 
-    return launchDescriptionObject
+    return launch_description_object

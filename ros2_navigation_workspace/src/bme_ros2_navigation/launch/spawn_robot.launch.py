@@ -1,11 +1,13 @@
 import os
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
-from ament_index_python.packages import get_package_share_directory
+
 
 def generate_launch_description():
 
@@ -190,25 +192,25 @@ def generate_launch_description():
         output='screen',
     )
 
-    launchDescriptionObject = LaunchDescription()
+    launch_description_object = LaunchDescription()
 
-    launchDescriptionObject.add_action(rviz_launch_arg)
-    launchDescriptionObject.add_action(rviz_config_arg)
-    launchDescriptionObject.add_action(world_arg)
-    launchDescriptionObject.add_action(model_arg)
-    launchDescriptionObject.add_action(x_arg)
-    launchDescriptionObject.add_action(y_arg)
-    launchDescriptionObject.add_action(yaw_arg)
-    launchDescriptionObject.add_action(sim_time_arg)
-    launchDescriptionObject.add_action(world_launch)
-    launchDescriptionObject.add_action(rviz_node)
-    launchDescriptionObject.add_action(spawn_urdf_node)
-    launchDescriptionObject.add_action(gz_bridge_node)
-    launchDescriptionObject.add_action(gz_image_bridge_node)
-    launchDescriptionObject.add_action(relay_camera_info_node)
-    launchDescriptionObject.add_action(robot_state_publisher_node)
-    launchDescriptionObject.add_action(trajectory_node)
-    launchDescriptionObject.add_action(ekf_node)
-    launchDescriptionObject.add_action(interactive_marker_twist_server_node)
+    launch_description_object.add_action(rviz_launch_arg)
+    launch_description_object.add_action(rviz_config_arg)
+    launch_description_object.add_action(world_arg)
+    launch_description_object.add_action(model_arg)
+    launch_description_object.add_action(x_arg)
+    launch_description_object.add_action(y_arg)
+    launch_description_object.add_action(yaw_arg)
+    launch_description_object.add_action(sim_time_arg)
+    launch_description_object.add_action(world_launch)
+    launch_description_object.add_action(rviz_node)
+    launch_description_object.add_action(spawn_urdf_node)
+    launch_description_object.add_action(gz_bridge_node)
+    launch_description_object.add_action(gz_image_bridge_node)
+    launch_description_object.add_action(relay_camera_info_node)
+    launch_description_object.add_action(robot_state_publisher_node)
+    launch_description_object.add_action(trajectory_node)
+    launch_description_object.add_action(ekf_node)
+    launch_description_object.add_action(interactive_marker_twist_server_node)
 
-    return launchDescriptionObject
+    return launch_description_object

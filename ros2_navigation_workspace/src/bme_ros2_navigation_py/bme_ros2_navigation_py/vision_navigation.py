@@ -1,10 +1,12 @@
+
+import contextlib
+
 import rclpy
-from rclpy.node import Node
-from rclpy.action import ActionClient
-from geometry_msgs.msg import PoseStamped, Point, Twist
+from geometry_msgs.msg import PoseStamped, Twist
 from nav2_msgs.action import NavigateToPose
-import time
-from std_msgs.msg import String, Float32MultiArray
+from rclpy.action import ActionClient
+from rclpy.node import Node
+from std_msgs.msg import Float32MultiArray, String
 
 # -- USER CONFIGURABLE TOPICS --
 CMD_VEL_TOPIC = '/cmd_vel'
@@ -14,24 +16,24 @@ INTERACTION_TOPIC = '/interaction_cmd' # Placeholder for 'Unlock'/'Clear'
 class VisionNavigation(Node):
     def __init__(self):
         super().__init__('vision_navigation')
-        
+
         # Action Client for Nav2
         self.nav_to_pose_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
-        
+
         # Publishers
         self.cmd_vel_pub = self.create_publisher(Twist, CMD_VEL_TOPIC, 10)
         self.claw_pub = self.create_publisher(String, CLAW_CMD_TOPIC, 10)
         self.interaction_pub = self.create_publisher(String, INTERACTION_TOPIC, 10)
-        
+
         # Subscribers
         self.yolo_sub = self.create_subscription(Float32MultiArray, '/yolo/target_info', self.yolo_callback, 10)
-        
+
         # State variables
         self.state = 'SEARCHING' # SEARCHING, SERVOING, OBSERVING, RECOVERING, FINISHED
         self.target_found = False
         self.target_dist = 0.0
         self.target_delta_x = 0.0
-        
+
         # Waypoints for searching the map (Placeholder coordinates, assuming WFC randomization needs dynamic goals)
         self.search_waypoints = [
             self.create_pose(2.0, 2.0),
@@ -39,17 +41,17 @@ class VisionNavigation(Node):
             self.create_pose(-2.0, 4.0),
         ]
         self.current_waypoint_idx = 0
-        
+
         # Goal handle to allow cancellation
         self.current_goal_handle = None
-        
+
         # Start immediately checking state
         self.timer = self.create_timer(0.5, self.state_machine_loop)
-        
+
         self.get_logger().info("Final Project Controller Started. Waiting for Nav2 Action Server...")
         self.nav_to_pose_client.wait_for_server()
         self.get_logger().info("Nav2 Action Server connected. Starting mission.")
-        
+
         self.send_next_waypoint()
 
     def create_pose(self, x, y):
@@ -71,7 +73,7 @@ class VisionNavigation(Node):
         if self.current_waypoint_idx >= len(self.search_waypoints):
             self.get_logger().info("All search waypoints visited. Restarting.")
             self.current_waypoint_idx = 0
-            
+
         goal_pose = self.search_waypoints[self.current_waypoint_idx]
         self.send_nav_goal(goal_pose)
         self.current_waypoint_idx += 1
@@ -80,8 +82,8 @@ class VisionNavigation(Node):
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose = pose
         goal_msg.pose.header.stamp = self.get_clock().now().to_msg()
-        
-        self.get_logger().info(f"Sending goal to Nav2...")
+
+        self.get_logger().info("Sending goal to Nav2...")
         send_goal_future = self.nav_to_pose_client.send_goal_async(goal_msg)
         send_goal_future.add_done_callback(self.goal_response_callback)
 
@@ -97,7 +99,6 @@ class VisionNavigation(Node):
         self.get_result_future.add_done_callback(self.get_result_callback)
 
     def get_result_callback(self, future):
-        result = future.result().result
         status = future.result().status
         if status == 4: # GoalStatus.STATUS_SUCCEEDED
             self.get_logger().info('Goal succeeded!')
@@ -124,10 +125,10 @@ class VisionNavigation(Node):
                 self.get_logger().info("Target Found! Switching to SERVOING.")
                 self.state = 'SERVOING'
                 self.cancel_navigation()
-        
+
         elif self.state == 'SERVOING':
             twist = Twist()
-            
+
             if not self.target_found:
                 # Lost target, go back to searching
                 self.get_logger().warn("Lost target. Returning to SEARCHING.")
@@ -137,33 +138,33 @@ class VisionNavigation(Node):
 
             # Proportional Control for steering
             # target_delta_x is range [-1, 1]
-            twist.angular.z = -1.0 * self.target_delta_x 
-            
+            twist.angular.z = -1.0 * self.target_delta_x
+
             # Forward speed based on distance
             if self.target_dist > 0.8:
                 twist.linear.x = 0.2
             else:
                 twist.linear.x = 0.1
-                
+
             # Stop condition (Canva: Close enough)
-            if self.target_dist < 0.5: 
+            if self.target_dist < 0.5:
                 twist.linear.x = 0.0
                 twist.angular.z = 0.0
                 self.cmd_vel_pub.publish(twist)
-                
+
                 self.get_logger().info("Reached Target! Observing for 5 seconds...")
                 self.state = 'OBSERVING'
                 self.observe_start_time = self.get_clock().now()
             else:
                 self.cmd_vel_pub.publish(twist)
-                
+
             # Reset detection to require constant confirmation
             self.target_found = False
 
         elif self.state == 'OBSERVING':
             current_time = self.get_clock().now()
             elapsed = (current_time - self.observe_start_time).nanoseconds / 1e9
-            
+
             # Publish 'UNLOCK' during observation (Task 3 Requirement)
             if elapsed < 1.0:
                 msg = String()
@@ -173,14 +174,14 @@ class VisionNavigation(Node):
             if elapsed > 5.0:
                 self.get_logger().info("Observation complete. Returning to origin...")
                 self.state = 'RECOVERING'
-                
+
                 # Send Nav2 back to spawn (0,0)
                 self.send_nav_goal(self.create_pose(0.0, 0.0))
 
         elif self.state == 'RECOVERING':
             # Logic handled in get_result_callback
             pass
-        
+
         elif self.state == 'FINISHED':
             # Stop all motion
             twist = Twist()
@@ -190,12 +191,10 @@ class VisionNavigation(Node):
 def main(args=None):
     rclpy.init(args=args)
     controller_node = VisionNavigation()
-    
-    try:
-         rclpy.spin(controller_node)
-    except KeyboardInterrupt:
-         pass
-         
+
+    with contextlib.suppress(KeyboardInterrupt):
+        rclpy.spin(controller_node)
+
     controller_node.destroy_node()
     rclpy.shutdown()
 

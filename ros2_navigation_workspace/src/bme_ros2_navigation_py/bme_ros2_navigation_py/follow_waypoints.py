@@ -1,8 +1,8 @@
 import rclpy
-from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import FollowWaypoints
 from rclpy.action import ActionClient
+from rclpy.node import Node
 from tf_transformations import quaternion_from_euler
 
 
@@ -54,7 +54,7 @@ class WaypointFollower(Node):
         self.get_logger().info(f"Navigating to waypoint {current_waypoint}")
 
     def get_result_callback(self, future):
-        result = future.result().result
+        future.result()
         self.get_logger().info("Waypoint following completed.")
         rclpy.shutdown()
 

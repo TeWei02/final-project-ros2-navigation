@@ -1,9 +1,10 @@
 import os
+
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import  LaunchConfiguration, PathJoinSubstitution, TextSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 
 
 def generate_launch_description():
@@ -35,9 +36,9 @@ def generate_launch_description():
         'on_exit_shutdown': 'true'}.items()
     )
 
-    launchDescriptionObject = LaunchDescription()
+    launch_description_object = LaunchDescription()
 
-    launchDescriptionObject.add_action(world_arg)
-    launchDescriptionObject.add_action(gazebo_launch)
+    launch_description_object.add_action(world_arg)
+    launch_description_object.add_action(gazebo_launch)
 
-    return launchDescriptionObject
+    return launch_description_object

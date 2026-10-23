@@ -1,5 +1,7 @@
 # ROS2 Navigation — Final Project: Vision-Guided Autonomous Navigation
 
+**Language:** [![中文](https://img.shields.io/badge/%E4%B8%AD%E6%96%87-%E4%B8%AD%E6%96%87%E7%89%88-blue?style=flat-square)](README.md) [![English](https://img.shields.io/badge/English-English-blue?style=flat-square)](README.en.md)
+
 [![ROS2](https://img.shields.io/badge/ROS2-Humble-%2322314E?logo=ros)](https://docs.ros.org/en/humble/)
 [![C++](https://img.shields.io/badge/C++-17-%2300599C?logo=c%2B%2B)](https://isocpp.org/)
 [![Python](https://img.shields.io/badge/Python-3-%233776AB?logo=python)](https://www.python.org/)

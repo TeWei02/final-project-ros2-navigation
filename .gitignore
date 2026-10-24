@@ -8,3 +8,7 @@ dist/
 .ruff_cache/
 node_modules/
 build/
+
+# Runtime logs and caches
+*.log
+.cache/
